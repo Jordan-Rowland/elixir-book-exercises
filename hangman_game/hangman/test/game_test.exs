@@ -16,7 +16,7 @@ defmodule GameTest do
   test "state isn't changed for :won or :lost game" do
     for state <- [:won, :lost] do
       game = Game.new_game |> Map.put(:game_state, state)
-      assert game = Game.make_move(game, "x")  # Pins the value of 'game' asserting a match
+      assert ^game = Game.make_move(game, "x")  # Pins the value of 'game' asserting a match
     end
   end
 
@@ -53,8 +53,8 @@ defmodule GameTest do
     ]
 
     moves
-    |> Enum.reduce(game, fn  # game is initial accumulator value, new_game is arg for that value
-      ({guess, state}, game) -> game = Game.make_move(game, guess)
+    |> Enum.reduce(game, fn ({guess, state}, game) ->  # game is initial accumulator value
+      game = Game.make_move(game, guess)
       assert game.game_state == state
       game
     end
@@ -70,25 +70,32 @@ defmodule GameTest do
 
   test "lost game is recognized" do
     game = Game.new_game("w")
-    game = Game.make_move(game, "x")
-    assert game.game_state == :bad_guess
-    assert game.turns_left == 6
-    game = Game.make_move(game, "q")
-    assert game.game_state == :bad_guess
-    assert game.turns_left == 5
-    game = Game.make_move(game, "y")
-    assert game.game_state == :bad_guess
-    assert game.turns_left == 4
-    game = Game.make_move(game, "r")
-    assert game.game_state == :bad_guess
-    assert game.turns_left == 3
-    game = Game.make_move(game, "t")
-    assert game.game_state == :bad_guess
-    assert game.turns_left == 2
-    game = Game.make_move(game, "z")
-    assert game.game_state == :bad_guess
-    assert game.turns_left == 1
-    game = Game.make_move(game, "m")
-    assert game.game_state == :lost
+
+    moves = [
+      {"x", :bad_guess},
+      {"q", :bad_guess},
+      {"y", :bad_guess},
+      {"r", :bad_guess},
+      {"t", :bad_guess},
+      {"z", :bad_guess},
+      {"m", :lost},
+    ]
+
+    moves
+
+    |> Enum.reduce(game, fn ({guess, state}, game) ->  # game is initial accumulator value
+      game = Game.make_move(game, guess)
+      assert game.game_state == state
+      game
+    end
+    )
+  end
+
+  test "guess is validated" do
+    game = Game.new_game("wibble")
+    game = Game.make_move(game, "xx")
+    assert game.game_state == :invalid_guess
+    game = Game.make_move(game, "w")
+    assert game.game_state == :good_guess
   end
 end

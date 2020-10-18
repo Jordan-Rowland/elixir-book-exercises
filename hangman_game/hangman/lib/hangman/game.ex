@@ -4,7 +4,7 @@ defmodule Hangman.Game do
     turns_left: 7,
     game_state: :initializing,
     letters: [],
-    used: MapSet.new(),
+    used: MapSet.new()
   )
 
   def new_game(word) do
@@ -23,7 +23,7 @@ defmodule Hangman.Game do
   end
 
   def make_move(game, guess) do
-    accept_move(game, guess, MapSet.member?(game.used, guess))
+    accept_move(game, guess, MapSet.member?(game.used, guess), validate_guess(guess))
   end
 
   def tally(game) do
@@ -36,13 +36,24 @@ defmodule Hangman.Game do
 
   #######################################################################
 
-  defp accept_move(game, guess, _already_guessed = true) do
+  defp accept_move(game, _guess, _already_guessed, _guess_allowed = false) do
+    "Guess must be a single lowercase character" |> IO.puts
+    Map.put(game, :game_state, :invalid_guess)
+  end
+
+  defp accept_move(game, _guess, _already_guessed = true, _guess_allowed) do
     Map.put(game, :game_state, :already_used)
   end
 
-  defp accept_move(game, guess, _already_guessed) do
+  defp accept_move(game, guess, _already_guessed, _guess_allowed) do
     Map.put(game, :used, MapSet.put(game.used, guess))
     |> score_guess(Enum.member?(game.letters, guess))
+  end
+
+  defp validate_guess(guess) do
+    # Create an alphabet list, ["a", "b", "c", (...)]
+    lets = for n <- ?a..?z, do: << n :: utf8 >>
+    lets |> Enum.member?(guess)
   end
 
   defp score_guess(game, _good_guess = true) do
@@ -70,17 +81,8 @@ defmodule Hangman.Game do
   end
 
   defp reveal_letter(letter, _in_word = true), do: letter
-  defp reveal_letter(letter, _not_in_word), do: "_"
+  defp reveal_letter(_letter, _not_in_word), do: "_"
 
   defp maybe_won(true), do: :won
   defp maybe_won(_), do: :good_guess
 end
-
-
-
-
-    # Add code to validate that a guess is a single lowercase ASCII character.
-    # defp validate_guess(guess) do
-    #   lets = for n <- ?a..?z, do: << n :: utf8 >>  # Create an alphabet list, ["a", "b", "c", (...)]
-    #   lets |> Enum.member?(guess)
-    # end
