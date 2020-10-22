@@ -61,10 +61,42 @@ defmodule CsvWriterTest do
     filename |> File.rm()
   end
 
-  # test "modify headers" do
-  #   # TODO
-  #   assert true
-  # end
+  test "add row from keyword list" do
+    dt_now = DateTime.now!("Etc/UTC")
+    filename = "test_create_#{dt_now}.csv"
+
+    {csv, _file} =
+      CsvWriter.create_file(
+        filename,
+        ["id", "name", "address"]
+      )
+      |> CsvWriter.add_row(id: 1, name: "djavid", address: "123 fake st")
+      |> CsvWriter.add_row(id: 2, name: "jenny", address: "120 evergreen terrace")
+
+    assert csv.row_len == 2
+    filename |> File.rm()
+  end
+
+  test "do not allow row longer than column length" do
+    dt_now = DateTime.now!("Etc/UTC")
+    filename = "test_create_#{dt_now}.csv"
+
+    {csv, _file} =
+      CsvWriter.create_file(
+        filename,
+        ["id", "name", "address"]
+      )
+      |> CsvWriter.add_row([1, "djavid", "123 fake st", "extra_column"])
+      |> CsvWriter.add_row(
+        id: 2,
+        name: "jenny",
+        address: "120 evergreen terrace",
+        extra: "extra column"
+      )
+
+    assert csv.row_len == 0
+    filename |> File.rm()
+  end
 
   test "validate row length matches amount of columns" do
     dt_now = DateTime.now!("Etc/UTC")

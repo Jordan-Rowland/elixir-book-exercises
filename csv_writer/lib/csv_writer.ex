@@ -2,7 +2,7 @@ defmodule CsvWriter do
   defstruct(
     filename: nil,
     headers: [],
-    # ? rows: [],  # list of maps ??
+    # ? rows: [],  # list of keword lists ??
     col_len: 0,
     row_len: 0
   )
@@ -66,13 +66,13 @@ defmodule CsvWriter do
     end
   end
 
-  def find_rows({csv, file}, column, search_query) do
-    # TODO
-    #
-    123
-    # return struct with subset of rows that match search
-    # CsvWriter%{}
-  end
+  # # TODO
+  # def find_rows({csv, file}, column, search_query) do
+  #   #
+  #   123
+  #   # return struct with subset of rows that match search
+  #   # CsvWriter%{}
+  # end
 
   # Private functions
 
@@ -84,10 +84,18 @@ defmodule CsvWriter do
     end
   end
 
-  defp format_row(row) do
+  defp format_row(row) when is_list(row) do
     string_row =
-      row
-      |> Enum.join(",")
+      with true <- Keyword.keyword?(row) do
+        row = for {_k, v} <- row, do: v
+
+        row
+        |> Enum.join(",")
+      else
+        false ->
+          row
+          |> Enum.join(",")
+      end
 
     row = string_row <> "\n"
     row
