@@ -55,6 +55,7 @@ defmodule CsvWriterTest do
       )
       |> CsvWriter.add_row([1, "djavid", "123 fake st"])
       |> CsvWriter.add_row([2, "jenny", "120 evergreen terrace"])
+      |> CsvWriter.add_row([2, "jenny", "120 evergreen terrace", "extra col"])
 
     assert csv.row_len == 2
     filename |> File.rm()

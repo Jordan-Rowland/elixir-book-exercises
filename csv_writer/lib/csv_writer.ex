@@ -49,29 +49,27 @@ defmodule CsvWriter do
   end
 
   def add_row({csv, file}, row) do
-    {csv, file} =
-      {csv, file, row}
-      |> validate_row()
-      |> format_row()
-      |> write_row()
+    with :ok <- validate_row({csv, row}),
+         row <- format_row(row) do
+      csv = {csv, file, row} |> write_row()
 
-    {csv, file}
+      csv = csv |> Map.put(:row_len, csv.row_len + 1)
+      {csv, file}
+    else
+      {:error, msg} ->
+        IO.inspect(msg, label: "Error occurred")
+        {csv, file}
+    end
   end
 
   # Private functions
 
-  defp validate_row({csv, file, row}) do
-    validated = csv.col_len == row |> length
-    {csv, file, row, validated}
-  end
-
-  defp format_row({csv, file, row, _validated_row = true}) do
-    string_row =
-      row
-      |> Enum.join(",")
-
-    row = string_row <> "\n"
-    {csv, file, row}
+  defp validate_row({csv, row}) do
+    if csv.col_len == row |> length do
+      :ok
+    else
+      {:error, "Row length does not match CSV column length(#{csv.col_len})"}
+    end
   end
 
   defp format_row(row) do
@@ -85,12 +83,7 @@ defmodule CsvWriter do
 
   defp write_row({csv, file, row}) do
     file |> IO.write(row)
-
-    csv =
-      csv
-      |> Map.put(:row_len, csv.row_len + 1)
-
-    {csv, file}
+    csv
   end
 
   # defp write_file({csv, file}) do
