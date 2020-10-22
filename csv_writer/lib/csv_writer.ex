@@ -85,17 +85,16 @@ defmodule CsvWriter do
   end
 
   defp format_row(row) when is_list(row) do
-    string_row =
+    row =
       with true <- Keyword.keyword?(row) do
-        row = for {_k, v} <- row, do: v
-
-        row
-        |> Enum.join(",")
+        for {_k, v} <- row, do: v
       else
-        false ->
-          row
-          |> Enum.join(",")
+        false -> row
       end
+
+    string_row =
+      row
+      |> Enum.join(",")
 
     row = string_row <> "\n"
     row
