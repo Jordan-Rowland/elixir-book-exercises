@@ -54,14 +54,32 @@ defmodule CsvWriterTest do
         ["id", "name", "address"]
       )
       |> CsvWriter.add_row([1, "djavid", "123 fake st"])
-      |> CsvWriter.add_row([2, "jenny", "420 high lane"])
+      |> CsvWriter.add_row([2, "jenny", "120 evergreen terrace"])
 
     assert csv.row_len == 2
     filename |> File.rm()
   end
 
-  test "modify headers" do
-    # TODO
-    assert true
+  # test "modify headers" do
+  #   # TODO
+  #   assert true
+  # end
+
+  test "validate row length matches amount of columns" do
+    dt_now = DateTime.now!("Etc/UTC")
+    filename = "test_create_#{dt_now}.csv"
+
+    row1 = [2, "jenny", "420 high lane"]
+    row2 = [2, "jenny", "420 high lane", "extra_column"]
+
+    {csv, _file} =
+      CsvWriter.create_file(
+        filename,
+        ["id", "name", "address"]
+      )
+
+    assert csv.col_len == row1 |> length
+    assert csv.col_len != row2 |> length
+    filename |> File.rm()
   end
 end

@@ -20,7 +20,7 @@ defmodule CsvWriter do
     file
     |> IO.write(
       list_of_headers
-      |> format_row
+      |> format_row()
     )
 
     {%CsvWriter{
@@ -39,6 +39,7 @@ defmodule CsvWriter do
   end
 
   def modify_headers({csv, file}, list_of_headers) do
+    # TODO
     csv =
       csv
       |> Map.put(:headers, list_of_headers)
@@ -48,48 +49,51 @@ defmodule CsvWriter do
   end
 
   def add_row({csv, file}, row) do
-    string_row = row |> format_row()
+    {csv, file} =
+      {csv, file, row}
+      |> validate_row()
+      |> format_row()
+      |> write_row()
 
-    file
-    |> IO.write(string_row)
-
-    csv = Map.put(csv, :row_len, csv.row_len + 1)
     {csv, file}
   end
 
   # Private functions
 
-  defp format_row(list_of_values) do
-    string_row =
-      list_of_values
-      |> Enum.join(",")
-
-    string_row <> "\n"
+  defp validate_row({csv, file, row}) do
+    validated = csv.col_len == row |> length
+    {csv, file, row, validated}
   end
 
-  defp write_file({csv, file}) do
+  defp format_row({csv, file, row, _validated_row = true}) do
+    string_row =
+      row
+      |> Enum.join(",")
+
+    row = string_row <> "\n"
+    {csv, file, row}
+  end
+
+  defp format_row(row) do
+    string_row =
+      row
+      |> Enum.join(",")
+
+    row = string_row <> "\n"
+    row
+  end
+
+  defp write_row({csv, file, row}) do
+    file |> IO.write(row)
+
+    csv =
+      csv
+      |> Map.put(:row_len, csv.row_len + 1)
+
     {csv, file}
   end
 
-  defp validate_row() do
-    true
-  end
+  # defp write_file({csv, file}) do
+  #   {csv, file}
+  # end
 end
-
-# """
-{csv, file} =
-  CsvWriter.open_file("test.csv")
-  |> CsvWriter.add_row([1, "djavid", "123 fake st"])
-  |> CsvWriter.add_row([2, "jenny", "420 high lane"])
-
-# """
-
-# """
-# create_file()
-# |> add_headers("id", "name", "address")
-# |> write_file
-
-# # returns file?
-# open_file()
-# |> find_rows()
-# """
