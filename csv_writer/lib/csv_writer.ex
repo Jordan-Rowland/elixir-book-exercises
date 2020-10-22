@@ -2,6 +2,7 @@ defmodule CsvWriter do
   defstruct(
     filename: nil,
     headers: [],
+    # ? rows: [],  # list of maps ??
     col_len: 0,
     row_len: 0
   )
@@ -31,11 +32,14 @@ defmodule CsvWriter do
   end
 
   def open_file(filename) do
+    # TODO: Needs to load rows into struct
+    csv = %CsvWriter{filename: filename}
     file = File.open!(filename, [:write])
 
-    {%CsvWriter{
-       filename: filename
-     }, file}
+    # iterate over file line by line, adding each file row into csv.rows
+    # csv = csv |> Map.put(rows, row)
+
+    {csv, file}
   end
 
   def modify_headers({csv, file}, list_of_headers) do
@@ -60,6 +64,14 @@ defmodule CsvWriter do
         IO.inspect(msg, label: "Error occurred")
         {csv, file}
     end
+  end
+
+  def find_rows({csv, file}, column, search_query) do
+    # TODO
+    #
+    123
+    # return struct with subset of rows that match search
+    # CsvWriter%{}
   end
 
   # Private functions
