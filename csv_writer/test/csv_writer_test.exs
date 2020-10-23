@@ -31,6 +31,7 @@ defmodule CsvWriterTest do
       |> CsvWriter.open_file()
 
     # file |> File.close()
+    filename |> File.rm()
   end
 
   test "create file with headers" do

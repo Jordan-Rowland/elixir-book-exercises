@@ -32,7 +32,7 @@ defmodule CsvWriter do
   end
 
   def open_file(filename) do
-    file = File.open!(filename, [:read, :write])
+    file = File.open!(filename, [:read, :append])
 
     stream = File.stream!(filename)
     [headers | rows] = for i <- stream, do: i |> String.trim() |> String.split(",")
@@ -41,7 +41,7 @@ defmodule CsvWriter do
       Enum.map(
         headers,
         fn header ->
-          header |> String.to_existing_atom()
+          header |> String.to_atom()
         end
       )
 
@@ -61,7 +61,7 @@ defmodule CsvWriter do
       col_len: headers |> length
     }
 
-    {csv, file}
+    {csv, file, stream}
   end
 
   def modify_headers({csv, file}, list_of_headers) when is_list(list_of_headers) do
