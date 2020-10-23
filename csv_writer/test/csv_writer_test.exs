@@ -2,47 +2,46 @@ defmodule CsvWriterTest do
   use ExUnit.Case
   doctest CsvWriter
 
+
   test "opens existing file" do
     # ! TODO: Fix this to account for empty file??
     dt_now = DateTime.now!("Etc/UTC")
-
     filename = "test_create_#{dt_now}.csv"
 
     filename
     |> File.open()
     |> File.close()
 
-    {csv, file} =
+    # csv = filename |> CsvWriter.open_file()
+    csv =  # ! This gets deleted
       filename
-      |> CsvWriter.open_file()
+      |> CsvWriter.create_file()
 
-    file |> File.close()
+    csv.file |> File.close()
 
     assert csv.filename == filename
     filename |> File.rm()
   end
 
-  # !! TODO: Update this
-  test "opens existing file 2" do
-    filename = "test.csv"
 
-    {csv, file} =
-      filename
-      |> CsvWriter.open_file()
+  # # !! TODO: Update this
+  # test "opens existing file 2" do
+  #   filename = "test.csv"
 
-    # file |> File.close()
-    filename |> File.rm()
-  end
+  #   csv = filename |> CsvWriter.open_file()
+
+  #   # file |> File.close()
+  #   filename |> File.rm()
+  # end
+
 
   test "create file with headers" do
     dt_now = DateTime.now!("Etc/UTC")
     filename = "test_create_#{dt_now}.csv"
 
-    {csv, _file} =
-      CsvWriter.create_file(
-        filename,
-        ["id", "name", "address"]
-      )
+    csv =
+      filename
+      |> CsvWriter.create_file(["id", "name", "address"])
 
     assert csv.filename == filename
     assert csv.headers == ["id", "name", "address"]
@@ -57,15 +56,14 @@ defmodule CsvWriterTest do
     filename |> File.rm()
   end
 
+
   test "add row to file" do
     dt_now = DateTime.now!("Etc/UTC")
     filename = "test_create_#{dt_now}.csv"
 
-    {csv, _file} =
-      CsvWriter.create_file(
-        filename,
-        ["id", "name", "address"]
-      )
+    csv =
+      filename
+      |> CsvWriter.create_file(["id", "name", "address"])
       |> CsvWriter.add_row([1, "djavid", "123 fake st"])
       |> CsvWriter.add_row([2, "jenny", "120 evergreen terrace"])
       |> CsvWriter.add_row([2, "jenny", "120 evergreen terrace", "extra col"])
@@ -74,15 +72,14 @@ defmodule CsvWriterTest do
     filename |> File.rm()
   end
 
+
   test "add row from keyword list" do
     dt_now = DateTime.now!("Etc/UTC")
     filename = "test_create_#{dt_now}.csv"
 
-    {csv, _file} =
-      CsvWriter.create_file(
-        filename,
-        ["id", "name", "address"]
-      )
+    csv =
+      filename
+      |> CsvWriter.create_file(["id", "name", "address"])
       |> CsvWriter.add_row(id: 1, name: "djavid", address: "123 fake st")
       |> CsvWriter.add_row(id: 2, name: "jenny", address: "120 evergreen terrace")
 
@@ -90,15 +87,14 @@ defmodule CsvWriterTest do
     filename |> File.rm()
   end
 
+
   test "do not allow row longer than column length" do
     dt_now = DateTime.now!("Etc/UTC")
     filename = "test_create_#{dt_now}.csv"
 
-    {csv, _file} =
-      CsvWriter.create_file(
-        filename,
-        ["id", "name", "address"]
-      )
+    csv =
+      filename
+      |> CsvWriter.create_file(["id", "name", "address"])
       |> CsvWriter.add_row([1, "djavid", "123 fake st", "extra_column"])
       |> CsvWriter.add_row(
         id: 2,
@@ -111,6 +107,7 @@ defmodule CsvWriterTest do
     filename |> File.rm()
   end
 
+
   test "validate row length matches amount of columns" do
     dt_now = DateTime.now!("Etc/UTC")
     filename = "test_create_#{dt_now}.csv"
@@ -118,16 +115,15 @@ defmodule CsvWriterTest do
     row1 = [2, "jenny", "420 high lane"]
     row2 = [2, "jenny", "420 high lane", "extra_column"]
 
-    {csv, _file} =
-      CsvWriter.create_file(
-        filename,
-        ["id", "name", "address"]
-      )
+    csv =
+      filename
+      |> CsvWriter.create_file(["id", "name", "address"])
 
     assert csv.col_len == row1 |> length
     assert csv.col_len != row2 |> length
     filename |> File.rm()
   end
+
 
   test "error on non-list row passed to add_row" do
     dt_now = DateTime.now!("Etc/UTC")
@@ -135,11 +131,9 @@ defmodule CsvWriterTest do
 
     row = %{this: "fails"}
 
-    {csv, _file} =
-      CsvWriter.create_file(
-        filename,
-        ["id", "name", "address"]
-      )
+    csv =
+      filename
+      |> CsvWriter.create_file(["id", "name", "address"])
       |> CsvWriter.add_row(row)
 
     assert csv.row_len == 0
