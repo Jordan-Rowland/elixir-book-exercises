@@ -115,4 +115,21 @@ defmodule CsvWriterTest do
     assert csv.col_len != row2 |> length
     filename |> File.rm()
   end
+
+  test "error on non-list row passed to add_row" do
+    dt_now = DateTime.now!("Etc/UTC")
+    filename = "test_create_#{dt_now}.csv"
+
+    row = %{this: "fails"}
+
+    {csv, _file} =
+      CsvWriter.create_file(
+        filename,
+        ["id", "name", "address"]
+      )
+      |> CsvWriter.add_row(row)
+
+    assert csv.row_len == 0
+    filename |> File.rm()
+  end
 end

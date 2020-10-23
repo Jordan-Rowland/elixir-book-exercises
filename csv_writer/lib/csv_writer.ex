@@ -15,7 +15,7 @@ defmodule CsvWriter do
      }, file}
   end
 
-  def create_file(filename, list_of_headers) do
+  def create_file(filename, list_of_headers) when is_list(list_of_headers) do
     file = File.open!(filename, [:write, :exclusive])
 
     file
@@ -32,7 +32,7 @@ defmodule CsvWriter do
   end
 
   def open_file(filename) do
-    # TODO: Needs to load rows into struct
+    # TODO: Needs to load rows into struct as kw lists
     csv = %CsvWriter{filename: filename}
     file = File.open!(filename, [:write])
 
@@ -42,7 +42,7 @@ defmodule CsvWriter do
     {csv, file}
   end
 
-  def modify_headers({csv, file}, list_of_headers) do
+  def modify_headers({csv, file}, list_of_headers) when is_list(list_of_headers) do
     # TODO
     csv =
       csv
@@ -52,7 +52,7 @@ defmodule CsvWriter do
     {csv, file}
   end
 
-  def add_row({csv, file}, row) do
+  def add_row({csv, file}, row) when is_list(row) do
     with :ok <- validate_row({csv, row}),
          row <- format_row(row) do
       csv = {csv, file, row} |> write_row()
@@ -66,6 +66,12 @@ defmodule CsvWriter do
     end
   end
 
+  def add_row({csv, file}, row) when not is_list(row) do
+    msg = "Row must be a list"
+    msg |> IO.inspect(label: "Error occurred")
+    {csv, file}
+  end
+
   # # TODO
   # def find_rows({csv, file}, column, search_query) do
   #   #
@@ -74,7 +80,9 @@ defmodule CsvWriter do
   #   # CsvWriter%{}
   # end
 
-  # Private functions
+  # *************************************** #
+  # ********** Private Functions ********** #
+  # *************************************** #
 
   defp validate_row({csv, row}) do
     if csv.col_len == row |> length do
@@ -84,7 +92,7 @@ defmodule CsvWriter do
     end
   end
 
-  defp format_row(row) when is_list(row) do
+  defp format_row(row) do
     row =
       with true <- Keyword.keyword?(row) do
         for {_k, v} <- row, do: v
