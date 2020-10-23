@@ -3,6 +3,7 @@ defmodule CsvWriterTest do
   doctest CsvWriter
 
   test "opens existing file" do
+    # ! TODO: Fix this to account for empty file??
     dt_now = DateTime.now!("Etc/UTC")
 
     filename = "test_create_#{dt_now}.csv"
@@ -19,6 +20,17 @@ defmodule CsvWriterTest do
 
     assert csv.filename == filename
     filename |> File.rm()
+  end
+
+  # !! TODO: Update this
+  test "opens existing file 2" do
+    filename = "test.csv"
+
+    {csv, file} =
+      filename
+      |> CsvWriter.open_file()
+
+    # file |> File.close()
   end
 
   test "create file with headers" do

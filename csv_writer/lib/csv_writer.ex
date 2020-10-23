@@ -2,7 +2,7 @@ defmodule CsvWriter do
   defstruct(
     filename: nil,
     headers: [],
-    # ? rows: [],  # list of keword lists ??
+    rows: [],
     col_len: 0,
     row_len: 0
   )
@@ -32,12 +32,34 @@ defmodule CsvWriter do
   end
 
   def open_file(filename) do
-    # TODO: Needs to load rows into struct as kw lists
-    csv = %CsvWriter{filename: filename}
-    file = File.open!(filename, [:write])
+    file = File.open!(filename, [:read, :write])
 
-    # iterate over file line by line, adding each file row into csv.rows
-    # csv = csv |> Map.put(rows, row)
+    stream = File.stream!(filename)
+    [headers | rows] = for i <- stream, do: i |> String.trim() |> String.split(",")
+
+    header_atoms =
+      Enum.map(
+        headers,
+        fn header ->
+          header |> String.to_existing_atom()
+        end
+      )
+
+    rows =
+      for row <- rows,
+          do:
+            List.zip([
+              header_atoms,
+              row
+            ])
+
+    csv = %CsvWriter{
+      filename: filename,
+      headers: headers,
+      rows: rows,
+      row_len: rows |> length,
+      col_len: headers |> length
+    }
 
     {csv, file}
   end
