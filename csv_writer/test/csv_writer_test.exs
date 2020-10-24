@@ -52,20 +52,20 @@ defmodule CsvWriterTest do
   #   filename |> File.rm()
   # end
 
-  # test "add row to file" do
-  #   dt_now = DateTime.now!("Etc/UTC")
-  #   filename = "test_create_#{dt_now}.csv"
+  test "add row to file" do
+    dt_now = DateTime.now!("Etc/UTC")
+    filename = "test_create_#{dt_now}.csv"
 
-  #   csv =
-  #     filename
-  #     |> CsvWriter.create_file(["id", "name", "address"])
-  #     |> CsvWriter.add_row([1, "djavid", "123 fake st"])
-  #     |> CsvWriter.add_row([2, "jenny", "120 evergreen terrace"])
-  #     |> CsvWriter.add_row([2, "jenny", "120 evergreen terrace", "extra col"])
+    csv =
+      filename
+      |> CsvWriter.new(["id", "name", "address"])
+      |> CsvWriter.add_row([1, "djavid", "123 fake st"])
+      |> CsvWriter.add_row([2, "jenny", "120 evergreen terrace"])
+      |> CsvWriter.add_row([2, "jenny", "120 evergreen terrace", "extra col"])
 
-  #   assert csv.row_len == 2
-  #   filename |> File.rm()
-  # end
+    assert csv.row_len == 2
+    filename |> File.rm()
+  end
 
   # test "add row from keyword list" do
   #   dt_now = DateTime.now!("Etc/UTC")
@@ -134,6 +134,8 @@ defmodule CsvWriterTest do
   # ? don't need this test, just testing
   test "filter rows" do
     csv = %CsvWriter{
+      filename: "new_csv.csv",
+      headers: ["id", "name", "age"],
       rows: [
         [id: 1, name: "jackson", age: 28],
         [id: 2, name: "rick", age: 30],
@@ -145,11 +147,15 @@ defmodule CsvWriterTest do
       ]
     }
 
-    rows = (csv |> CsvWriter.filter_rows(:name, "dave"))
+    [headers | rows] =
+      csv
+      |> CsvWriter.filter_rows(:name, "dave")
 
-    rows |> CsvWriter.rows_to_strings |> IO.puts
-
-
+    [headers | rows]
+    # |> CsvWriter.rows_to_strings
+    |> CsvWriter.write_file("new_csv.csv")
+    headers |> Enum.join(",") |> IO.puts
+    # rows |> CsvWriter.rows_to_strings |> IO.puts
 
 
     # index = csv.rows |> Enum.find_index(fn row -> row == filtered_row end)
