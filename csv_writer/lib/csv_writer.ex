@@ -94,13 +94,14 @@ defmodule CsvWriter do
     csv
   end
 
-  def add_column(csv, col_name, default_value = "") do
-    # TODO: add column and optional defaul value
-    # for all rows
-    123
-  end
+  # def add_column(csv, col_name, default_value = "") do
+  #   # TODO: add column and optional defaul value
+  #   # for all rows
+  #   123
+  # end
 
-  # def replace_values(csv, )
+  # def replace_values(csv, ) do
+  # end
   # TODO: find-and-replace ability
 
   # TODO: Decide on implementation of finding rows
@@ -108,14 +109,17 @@ defmodule CsvWriter do
   # from the 'update_row' function below, or might
   # keep this a more complicated and return it's own
   # csv struct.
+  def filter_rows(csv, field, value) do
+    filtered_rows = csv.rows
+    |> Enum.filter(fn row -> row[field] == value end)
+    filtered_rows
+  end
 
-  # def find_rows(csv, column, search_query) do
-  #   #
-  #   123
-  #   # return struct with subset of rows that match search
-  #   # CsvWriter%{}
-  # end
-
+  def rows_to_strings(rows) do
+    rows |> Enum.map(fn row ->
+      row
+      |> format_row end)
+    end
   def update_row(
         csv,
         field,
@@ -126,9 +130,10 @@ defmodule CsvWriter do
     # TODO:
     # filter csv.rows to find value in column
     # filtered_rows =
-    csv.rows
-    |> Enum.filter(fn row -> row[field] == value end)
-    |> Enum.with_index()
+    csv
+    |> filter_rows(field,value)
+
+    # |> Enum.with_index()
 
     # get index of row
 
@@ -154,7 +159,7 @@ defmodule CsvWriter do
   defp format_row(row) do
     row =
       with true <- Keyword.keyword?(row) do
-        for {_k, v} <- row, do: v
+        row |> Keyword.values()
       else
         false -> row
       end
@@ -170,4 +175,5 @@ defmodule CsvWriter do
   # defp write_file(csv) do
   #   csv
   # end
+
 end
