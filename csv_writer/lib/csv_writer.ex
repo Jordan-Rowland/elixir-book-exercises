@@ -94,7 +94,21 @@ defmodule CsvWriter do
     csv
   end
 
-  # # TODO
+  def add_column(csv, col_name, default_value = "") do
+    # TODO: add column and optional defaul value
+    # for all rows
+    123
+  end
+
+  # def replace_values(csv, )
+  # TODO: find-and-replace ability
+
+  # TODO: Decide on implementation of finding rows
+  # Might have this function be the filter function
+  # from the 'update_row' function below, or might
+  # keep this a more complicated and return it's own
+  # csv struct.
+
   # def find_rows(csv, column, search_query) do
   #   #
   #   123
@@ -105,16 +119,21 @@ defmodule CsvWriter do
   def update_row(
         csv,
         field,
-        value,
-        update_field,
-        update_value
+        value
+        # update_field,
+        # update_value
       ) do
     # TODO:
     # filter csv.rows to find value in column
+    # filtered_rows =
+    csv.rows
+    |> Enum.filter(fn row -> row[field] == value end)
+    |> Enum.with_index()
+
     # get index of row
+
     # delete that intry
     # insert row back at same index(if possible)
-    123
   end
 
   # *************************************** #

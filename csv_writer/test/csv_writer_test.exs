@@ -2,7 +2,6 @@ defmodule CsvWriterTest do
   use ExUnit.Case
   doctest CsvWriter
 
-
   test "opens existing file" do
     # ! TODO: Fix this to account for empty file??
     dt_now = DateTime.now!("Etc/UTC")
@@ -13,14 +12,14 @@ defmodule CsvWriterTest do
     |> File.close()
 
     # csv = filename |> CsvWriter.open_file()
-    csv = filename |> CsvWriter.create_file() # ! This gets deleted
+    # ! This gets deleted
+    csv = filename |> CsvWriter.create_file()
 
     csv.file |> File.close()
 
     assert csv.filename == filename
     filename |> File.rm()
   end
-
 
   # # !! TODO: Update this
   # test "opens existing file 2" do
@@ -31,7 +30,6 @@ defmodule CsvWriterTest do
   #   # file |> File.close()
   #   filename |> File.rm()
   # end
-
 
   test "create file with headers" do
     dt_now = DateTime.now!("Etc/UTC")
@@ -54,7 +52,6 @@ defmodule CsvWriterTest do
     filename |> File.rm()
   end
 
-
   test "add row to file" do
     dt_now = DateTime.now!("Etc/UTC")
     filename = "test_create_#{dt_now}.csv"
@@ -70,7 +67,6 @@ defmodule CsvWriterTest do
     filename |> File.rm()
   end
 
-
   test "add row from keyword list" do
     dt_now = DateTime.now!("Etc/UTC")
     filename = "test_create_#{dt_now}.csv"
@@ -84,7 +80,6 @@ defmodule CsvWriterTest do
     assert csv.row_len == 2
     filename |> File.rm()
   end
-
 
   test "do not allow row longer than column length" do
     dt_now = DateTime.now!("Etc/UTC")
@@ -105,7 +100,6 @@ defmodule CsvWriterTest do
     filename |> File.rm()
   end
 
-
   test "validate row length matches amount of columns" do
     dt_now = DateTime.now!("Etc/UTC")
     filename = "test_create_#{dt_now}.csv"
@@ -122,7 +116,6 @@ defmodule CsvWriterTest do
     filename |> File.rm()
   end
 
-
   test "error on non-list row passed to add_row" do
     dt_now = DateTime.now!("Etc/UTC")
     filename = "test_create_#{dt_now}.csv"
@@ -136,5 +129,18 @@ defmodule CsvWriterTest do
 
     assert csv.row_len == 0
     filename |> File.rm()
+  end
+
+  # ? don't need this test, just testing
+  test "filter rows" do
+    rows = [
+      [id: 1, name: "jackson", age: 28],
+      [id: 2, name: "rick", age: 30],
+      [id: 3, name: "dave", age: 33]
+    ]
+
+    csv = %CsvWriter{rows: rows}
+    filtered_row = csv |> CsvWriter.update_row(:name, "dave")
+    filtered_row |> Enum.find_index()
   end
 end
