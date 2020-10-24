@@ -13,26 +13,23 @@ defmodule CsvWriter do
     file = File.open!(filename, [:write, :exclusive])
 
     %CsvWriter{
-       filename: filename,
-       file: file
-     }
+      filename: filename,
+      file: file
+    }
   end
 
   def create_file(filename, list_of_headers) when is_list(list_of_headers) do
     file = File.open!(filename, [:write, :exclusive])
 
     file
-    |> IO.write(
-      list_of_headers
-      |> format_row()
-    )
+    |> IO.write(list_of_headers |> format_row())
 
     %CsvWriter{
-       filename: filename,
-       headers: list_of_headers,
-       col_len: list_of_headers |> length,
-       file: file
-     }
+      filename: filename,
+      headers: list_of_headers,
+      col_len: list_of_headers |> length,
+      file: file
+    }
   end
 
   def open_file(filename) do
@@ -41,7 +38,8 @@ defmodule CsvWriter do
     stream = File.stream!(filename)
     [headers | rows] = for i <- stream, do: i |> String.trim() |> String.split(",")
 
-    header_atoms =  # Turns headers into atoms for keylist
+    # Turns headers into atoms for keylist
+    header_atoms =
       Enum.map(
         headers,
         fn header ->
@@ -49,7 +47,8 @@ defmodule CsvWriter do
         end
       )
 
-    rows =  # Turns rows into keylist with headers as keys
+    # Turns rows into keylist with headers as keys
+    rows =
       for row <- rows,
           do:
             List.zip([
@@ -57,7 +56,7 @@ defmodule CsvWriter do
               row
             ])
 
-    csv = %CsvWriter{
+    %CsvWriter{
       filename: filename,
       headers: headers,
       rows: rows,
@@ -66,27 +65,21 @@ defmodule CsvWriter do
       file: file,
       stream: stream
     }
-
-    csv
   end
 
   def modify_headers(csv, list_of_headers) when is_list(list_of_headers) do
     # TODO
-    csv =
-      csv
-      |> Map.put(:headers, list_of_headers)
-      |> Map.put(:col_len, list_of_headers |> length)
-
     csv
+    |> Map.put(:headers, list_of_headers)
+    |> Map.put(:col_len, list_of_headers |> length)
   end
 
   def add_row(csv, row) when is_list(row) do
     with :ok <- validate_row(csv, row),
          row <- format_row(row) do
-      csv = {csv, row} |> write_row()
-
-      csv = csv |> Map.put(:row_len, csv.row_len + 1)
       csv
+      |> write_row(row)
+      |> Map.put(:row_len, csv.row_len + 1)
     else
       {:error, msg} ->
         IO.inspect(msg, label: "Error occurred")
@@ -95,8 +88,9 @@ defmodule CsvWriter do
   end
 
   def add_row(csv, row) when not is_list(row) do
-    msg = "Row must be a list"
-    msg |> IO.inspect(label: "Error occurred")
+    "Row must be a list"
+    |> IO.inspect(label: "Error occurred")
+
     csv
   end
 
@@ -108,6 +102,21 @@ defmodule CsvWriter do
   #   # CsvWriter%{}
   # end
 
+  def update_row(
+        csv,
+        field,
+        value,
+        update_field,
+        update_value
+      ) do
+    # TODO:
+    # filter csv.rows to find value in column
+    # get index of row
+    # delete that intry
+    # insert row back at same index(if possible)
+    123
+  end
+
   # *************************************** #
   # ********** Private Functions ********** #
   # *************************************** #
@@ -116,7 +125,10 @@ defmodule CsvWriter do
     if csv.col_len == row |> length do
       :ok
     else
-      {:error, "Row length does not match CSV column length(#{csv.col_len})"}
+      {
+        :error,
+        "Row length does not match CSV column length(#{csv.col_len})"
+      }
     end
   end
 
@@ -128,15 +140,10 @@ defmodule CsvWriter do
         false -> row
       end
 
-    string_row =
-      row
-      |> Enum.join(",")
-
-    row = string_row <> "\n"
-    row
+    (row |> Enum.join(",")) <> "\n"
   end
 
-  defp write_row({csv, row}) do
+  defp write_row(csv, row) do
     csv.file |> IO.write(row)
     csv
   end

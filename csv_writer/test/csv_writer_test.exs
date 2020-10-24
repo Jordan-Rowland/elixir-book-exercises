@@ -13,9 +13,7 @@ defmodule CsvWriterTest do
     |> File.close()
 
     # csv = filename |> CsvWriter.open_file()
-    csv =  # ! This gets deleted
-      filename
-      |> CsvWriter.create_file()
+    csv = filename |> CsvWriter.create_file() # ! This gets deleted
 
     csv.file |> File.close()
 
