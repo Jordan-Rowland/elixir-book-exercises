@@ -54,12 +54,13 @@ defmodule CsvWriter do
     }
   end
 
-  def write_file(rows, filename) do
+  def write_file(rows, filename) when is_list(rows) do
     [filename | _ext] = filename |> String.split(".")
     file = "#{filename}.csv" |> File.open!([:write, :exclusive])
     rows
     |> rows_to_strings()
     |> Enum.each(fn row -> write_row(file, row) end)
+    file |> File.close
   end
 
   def write_file(csv) when is_struct(csv) do
@@ -68,7 +69,7 @@ defmodule CsvWriter do
     [csv.headers | csv.rows]
     |> rows_to_strings()
     |> Enum.each(fn row -> write_row(file, row) end)
-    csv
+    file |> File.close
   end
 
   # def modify_headers(csv, list_of_headers) when is_list(list_of_headers) do
@@ -83,7 +84,7 @@ defmodule CsvWriter do
         _row <- format_row(row) do
       csv
       |> Map.put(:row_len, csv.row_len + 1)
-      |> Map.put(:rows, csv.rows ++ row)
+      |> Map.put(:rows, csv.rows ++ [row])
     else
       {:error, msg} ->
         IO.inspect(msg, label: "Error occurred")
@@ -113,7 +114,7 @@ defmodule CsvWriter do
     [csv.headers | filtered_rows]
   end
 
-  defp rows_to_strings(rows) when is_list(rows) do
+  def rows_to_strings(rows) when is_list(rows) do
     rows |> Enum.map(fn row -> row |> format_row end)
   end
 
