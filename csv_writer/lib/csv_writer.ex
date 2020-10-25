@@ -62,8 +62,11 @@ defmodule CsvWriter do
     file |> File.close
   end
 
-  def modify_headers(csv, list_of_headers) when is_list(list_of_headers) do
-    # TODO: verify new headers list length
+  defguard is_valid_headers(csv, list_of_headers)
+  when is_list(list_of_headers)
+  and csv.col_len == length(list_of_headers)
+
+  def modify_headers(csv, list_of_headers) when is_valid_headers(csv, list_of_headers) do
     csv
     |> Map.put(:headers, list_of_headers)
     |> Map.put(:col_len, list_of_headers |> length)
@@ -123,10 +126,6 @@ defmodule CsvWriter do
       csv.rows
       |> Enum.filter(fn row -> row[field] == value end)
     [csv.headers | filtered_rows]
-  end
-
-  def rows_to_strings(rows) when is_list(rows) do
-    rows |> Enum.map(fn row -> row |> format_row end)
   end
 
   # # TODO:
@@ -203,6 +202,10 @@ defmodule CsvWriter do
       )
     end
     ))
+  end
+
+  defp rows_to_strings(rows) when is_list(rows) do
+    rows |> Enum.map(fn row -> row |> format_row end)
   end
 
 end

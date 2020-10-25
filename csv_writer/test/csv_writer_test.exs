@@ -158,14 +158,19 @@ defmodule CsvWriterTest do
   end
 
   test "modify headers" do
+    headers = ["id", "name", "age"]
     csv = %CsvWriter{
-      headers: ["id", "name", "age"],
+      headers: headers,
+      col_len: headers |> length,
       rows: [
         [id: 1, name: "jackson", age: 28],
       ]
     }
 
     new_headers = ["new1", "new2", "new3"]
+    csv.col_len |> IO.puts
+    new_headers |> length |> IO.puts
+
     csv = csv |> CsvWriter.modify_headers(new_headers)
     [first_row | _] = csv.rows
 
