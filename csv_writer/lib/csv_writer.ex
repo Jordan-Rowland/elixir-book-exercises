@@ -26,7 +26,6 @@ defmodule CsvWriter do
   def open_file(filename) do
     stream = File.stream!(filename)
     [headers | rows] = for i <- stream, do: i |> String.trim() |> String.split(",")
-
     header_atoms = headers |> convert_headers_to_atoms()
 
     rows =  # Turns rows into keylist with headers as keys
@@ -46,6 +45,8 @@ defmodule CsvWriter do
     }
   end
 
+  # ? I think this can probably be just 1 function, but not sure.
+  # ? This implementation might be too nice.
   def write_file(rows, filename) when is_list(rows) do
     file = filename |> File.open!([:write, :exclusive])
     rows
@@ -117,10 +118,6 @@ defmodule CsvWriter do
     |> Map.put(:col_len, csv.headers |> length)
   end
 
-  # def replace_values(csv, ) do
-  # end
-  # TODO: find-and-replace ability
-
   def filter_rows(csv, field, value) do
     filtered_rows =
       csv.rows
@@ -128,24 +125,20 @@ defmodule CsvWriter do
     [csv.headers | filtered_rows]
   end
 
-  # # TODO:
-  # # TODO: filter csv.rows to find value in column
-  # # TODO: filtered_rows =
-  # def update_row(
-  #         csv,
-  #         field,
-  #         value
-  #         # update_field,
-  #         # update_value
-  #       ) do
-  #   csv
-  #   |> filter_rows(field,value)
+  # ? Possilby multiple implementations for row or index passed
+  def update_row(csv, old_row, new_row) do
+    replace_index =
+      csv.rows
+      |> Enum.find_index(fn row ->
+        row == old_row
+      end)
+    updated_rows = csv.rows |> List.replace_at(replace_index, new_row)
+    Map.put(csv, :rows, updated_rows)
+  end
 
-  #   # get index of row
-  #   # |> Enum.with_index()
-
-  #   # delete that intry
-  #   # insert row back at same index(if possible)
+  # def find_replace_all(csv, column, find, replace) do
+    # TODO: find-and-replace ability
+    # 123
   # end
 
   # *************************************** #

@@ -178,6 +178,28 @@ defmodule CsvWriterTest do
     assert first_row == [new1: 1, new2: "jackson", new3: 28]
   end
 
+  test "update row" do
+    csv = %CsvWriter{
+      headers: ["id", "name", "age"],
+      rows: [
+        [id: 1, name: "jackson", age: 28],
+        [id: 2, name: "rick", age: 30],
+        [id: 3, name: "dave", age: 33],
+        [id: 4, name: "mike", age: 55],
+        [id: 5, name: "jevin", age: 66],
+        [id: 6, name: "dave", age: 56],
+        [id: 7, name: "ron", age: 65],
+      ]
+    }
+
+    old_row = [id: 4, name: "mike", age: 55]
+    new_row = [id: 4, name: "michael", age: 56]
+
+    csv = csv |> CsvWriter.update_row(old_row, new_row)
+
+    assert new_row in csv.rows
+  end
+
   #### ! For testing
   test "testing" do
     csv = %CsvWriter{
