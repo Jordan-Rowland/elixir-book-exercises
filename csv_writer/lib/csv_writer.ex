@@ -8,13 +8,13 @@ defmodule CsvWriter do
   )
 
   def new(filename) do
-    # File.open!(filename, [:exclusive]) |> File.close
     %CsvWriter{filename: filename}
   end
 
   def new(filename, list_of_headers) when is_list(list_of_headers) do
-    File.open!(filename, [:write, :exclusive])
-    |> IO.write(list_of_headers |> format_row())
+    file = File.open!(filename, [:write, :exclusive])
+    file |> IO.write(list_of_headers |> format_row())
+    file |> File.close()
 
     %CsvWriter{
       filename: filename,
@@ -75,24 +75,24 @@ defmodule CsvWriter do
     |> Map.put(:col_len, list_of_headers |> length)
   end
 
-  # TODO: handle error with something better than a print to IO
-  def add_row(csv, row) when is_list(row) do
-    with :ok <- validate_row(csv, row),
-        _row <- format_row(row) do
+  # TODO: Handle error with something better than a print to IO??
+  # TODO: Unsure if I want this to fail and crash, or keep running...
+  def add_row(csv, row) do
+    with true <- row |> is_list(),
+          :ok <- validate_row_len(csv, row) do
       csv
       |> Map.put(:row_len, csv.row_len + 1)
       |> Map.put(:rows, csv.rows ++ [row])
     else
+      false ->
+          "Row must be a list"
+          |> IO.inspect(label: "Error occurred")
+          csv
       {:error, msg} ->
-        IO.inspect(msg, label: "Error occurred")
-        IO.inspect(row)
-        csv
+          IO.inspect(msg, label: "Error occurred")
+          IO.inspect(row)
+          csv
     end
-  end
-
-  def add_row(csv, row) when not is_list(row) do
-    "Row must be a list" |> IO.inspect(label: "Error occurred")
-    csv
   end
 
   def add_column(csv, col_name, default_value) do
@@ -154,7 +154,7 @@ defmodule CsvWriter do
   # ********** Private Functions ********** #
   # *************************************** #
 
-  defp validate_row(csv, row) do
+  defp validate_row_len(csv, row) do
     if csv.col_len == row |> length do
       :ok
     else
