@@ -24,6 +24,7 @@ defmodule CsvWriter do
   end
 
   def open_file(filename) do
+    # TODO: Account for empty file
     stream = File.stream!(filename)
     [headers | rows] = for i <- stream, do: i |> String.trim() |> String.split(",")
 
@@ -53,17 +54,15 @@ defmodule CsvWriter do
   end
 
   def write_file(rows, filename) when is_list(rows) do
-    [filename | _ext] = filename |> String.split(".")
-    file = "#{filename}.csv" |> File.open!([:write, :exclusive])
+    file = filename |> File.open!([:write, :exclusive])
     rows
     |> rows_to_strings()
     |> Enum.each(fn row -> write_row(file, row) end)
     file |> File.close
   end
 
-  def write_file(csv) when is_struct(csv) do
-    [filename | _ext] = csv.filename |> String.split(".")
-    file = "#{filename}.csv" |> File.open!([:write, :exclusive])
+  def write_file(csv, filename) when is_struct(csv) do
+    file = filename |> File.open!([:write, :exclusive])
     [csv.headers | csv.rows]
     |> rows_to_strings()
     |> Enum.each(fn row -> write_row(file, row) end)

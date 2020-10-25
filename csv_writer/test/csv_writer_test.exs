@@ -2,26 +2,26 @@ defmodule CsvWriterTest do
   use ExUnit.Case
   doctest CsvWriter
 
-  # test "opens existing file" do
-  #   # ! TODO: Fix this to account for empty file??
-  #   dt_now = DateTime.now!("Etc/UTC")
-  #   filename = "test_create_#{dt_now}.csv"
+  test "opens existing file" do
+    # ! TODO: Fix this to account for empty file??
+    dt_now = DateTime.now!("Etc/UTC")
+    filename = "test_1_create_#{dt_now}.csv"
 
-  #   filename
-  #   |> File.open()
-  #   |> File.close()
+    filename
+    |> File.open([:write])
+    |> File.close()
 
-  #   # csv = filename |> CsvWriter.open_file()
-  #   # ! This gets deleted
-  #   csv = filename |> CsvWriter.new()
+    csv = filename |> CsvWriter.open_file()
+    # ! This gets deleted
+    # csv = filename |> CsvWriter.new()
 
-  #   assert csv.filename == filename
-  #   filename |> File.rm!()
-  # end
+    assert csv.filename == filename
+    filename |> File.rm!()
+  end
 
   test "create file with headers" do
     dt_now = DateTime.now!("Etc/UTC")
-    filename = "test_create_#{dt_now}.csv"
+    filename = "test_2_create_#{dt_now}.csv"
 
     csv =
       filename
@@ -42,7 +42,7 @@ defmodule CsvWriterTest do
 
   test "add row to file" do
     dt_now = DateTime.now!("Etc/UTC")
-    filename = "test_create_#{dt_now}.csv"
+    filename = "test_3_create_#{dt_now}.csv"
 
     csv =
       filename
@@ -56,25 +56,29 @@ defmodule CsvWriterTest do
   end
 
   # ! This is not deleting the file D:
-  # test "add row from keyword list" do
-  #   dt_now = DateTime.now!("Etc/UTC")
-  #   filename = "test_create_#{dt_now}.csv"
+  test "add row from keyword list" do
+    dt_now = DateTime.now!("Etc/UTC")
+    filename = "test_4_create_#{dt_now}.csv"
+    # Need to fix this.
 
-  #   csv =
-  #     filename
-  #     |> CsvWriter.new(["id", "name", "address"])
-  #     |> CsvWriter.add_row(id: 1, name: "djavid", address: "123 fake st")
-  #     |> CsvWriter.add_row(id: 2, name: "jenny", address: "120 evergreen terrace")
+    csv =
+      filename
+      |> CsvWriter.new(["id", "name", "address"])
+      |> CsvWriter.add_row(id: 1, name: "djavid", address: "123 fake st")
+      |> CsvWriter.add_row(id: 2, name: "jenny", address: "120 evergreen terrace")
 
-  #   csv |> CsvWriter.write_file()
+    dt_now = DateTime.now!("Etc/UTC")
+    filename2 = "test_4_create_#{dt_now}.csv"
+    csv |> CsvWriter.write_file(filename2)
 
-  #   assert csv.row_len == 2
-  #   filename |> File.rm!()
-  # end
+    assert csv.row_len == 2
+    filename |> File.rm!()
+    filename2 |> File.rm!()
+  end
 
   test "do not allow row longer than column length" do
     dt_now = DateTime.now!("Etc/UTC")
-    filename = "test_create_#{dt_now}.csv"
+    filename = "test_5_create_#{dt_now}.csv"
 
     csv =
       filename
@@ -93,7 +97,7 @@ defmodule CsvWriterTest do
 
   test "validate row length matches amount of columns" do
     dt_now = DateTime.now!("Etc/UTC")
-    filename = "test_create_#{dt_now}.csv"
+    filename = "test_6_create_#{dt_now}.csv"
 
     row1 = [2, "jenny", "420 high lane"]
     row2 = [2, "jenny", "420 high lane", "extra_column"]
@@ -109,7 +113,7 @@ defmodule CsvWriterTest do
 
   test "error on non-list row passed to add_row" do
     dt_now = DateTime.now!("Etc/UTC")
-    filename = "test_create_#{dt_now}.csv"
+    filename = "test_7_create_#{dt_now}.csv"
 
     row = %{this: "fails"}
 
@@ -123,30 +127,31 @@ defmodule CsvWriterTest do
   end
 
   # ? don't need this test, just testing
-  # test "filter rows" do
-  #   csv = %CsvWriter{
-  #     filename: "new_csv.csv",
-  #     headers: ["id", "name", "age"],
-  #     rows: [
-  #       [id: 1, name: "jackson", age: 28],
-  #       [id: 2, name: "rick", age: 30],
-  #       [id: 3, name: "dave", age: 33],
-  #       [id: 4, name: "mike", age: 55],
-  #       [id: 5, name: "jevin", age: 66],
-  #       [id: 6, name: "dave", age: 56],
-  #       [id: 7, name: "ron", age: 65],
-  #     ]
-  #   }
+  test "filter rows" do
+    dt_now = DateTime.now!("Etc/UTC")
+    filename = "test_8_create_#{dt_now}.csv"
 
-  #   dt_now = DateTime.now!("Etc/UTC")
-  #   filename = "test_create_#{dt_now}.csv"
+    csv = %CsvWriter{
+      filename: filename,
+      headers: ["id", "name", "age"],
+      rows: [
+        [id: 1, name: "jackson", age: 28],
+        [id: 2, name: "rick", age: 30],
+        [id: 3, name: "dave", age: 33],
+        [id: 4, name: "mike", age: 55],
+        [id: 5, name: "jevin", age: 66],
+        [id: 6, name: "dave", age: 56],
+        [id: 7, name: "ron", age: 65],
+      ]
+    }
 
-  #   filtered_rows =
-  #     csv
-  #     |> CsvWriter.filter_rows(:name, "dave")
 
-  #   filtered_rows |> CsvWriter.write_file(filename)
+    filtered_rows =
+      csv
+      |> CsvWriter.filter_rows(:name, "dave")
 
-  #   File.rm!(filename)
-  # end
+    filtered_rows |> CsvWriter.write_file(filename)
+
+    File.rm!(filename)
+  end
 end
