@@ -27,13 +27,7 @@ defmodule CsvWriter do
     stream = File.stream!(filename)
     [headers | rows] = for i <- stream, do: i |> String.trim() |> String.split(",")
 
-    header_atoms =  # Turns headers into atoms for keylist
-      Enum.map(
-        headers,
-        fn header ->
-          header |> String.to_atom()
-        end
-      )
+    header_atoms = headers |> convert_headers_to_atoms()
 
     rows =  # Turns rows into keylist with headers as keys
       for row <- rows,
@@ -69,10 +63,11 @@ defmodule CsvWriter do
   end
 
   def modify_headers(csv, list_of_headers) when is_list(list_of_headers) do
-    # TODO: test this -- ?? may not need to, being tested in "add column" test
+    # TODO: verify new headers list length
     csv
     |> Map.put(:headers, list_of_headers)
     |> Map.put(:col_len, list_of_headers |> length)
+    |> update_rows_new_headers(list_of_headers)
   end
 
   # TODO: Handle error with something better than a print to IO??
@@ -98,21 +93,25 @@ defmodule CsvWriter do
   def add_column(csv, col_name, default_value) do
     csv
     |> Map.put(:rows, Enum.map(
-        csv.rows,
-        fn row ->
-          row ++ ["#{col_name}": default_value] end
-        ))
-    |> modify_headers(csv.headers ++ [col_name])
+      csv.rows,
+      fn row ->
+        row ++ ["#{col_name}": default_value] end
+      )
+    )
+    |> Map.put(:headers, csv.headers ++ [col_name])
+    |> Map.put(:col_len, csv.headers |> length)
   end
 
   def add_column(csv, col_name) do
     csv
     |> Map.put(:rows, Enum.map(
-        csv.rows,
-        fn row ->
-          row ++ ["#{col_name}": ""] end
-        ))
-    |> modify_headers(csv.headers ++ [col_name])
+      csv.rows,
+      fn row ->
+        row ++ ["#{col_name}": ""] end
+      )
+    )
+    |> Map.put(:headers, csv.headers ++ [col_name])
+    |> Map.put(:col_len, csv.headers |> length)
   end
 
   # def replace_values(csv, ) do
@@ -181,6 +180,29 @@ defmodule CsvWriter do
     else
       {:error, reason} -> IO.inspect(reason)
     end
+  end
+
+  defp convert_headers_to_atoms(list_of_headers) do
+    list_of_headers
+    |> Enum.map(
+      fn header ->
+        header |> String.to_atom()
+      end
+      )
+  end
+
+  defp update_rows_new_headers(csv, new_headers) do
+    csv
+    |> Map.put(
+      :rows,
+      Enum.map(
+      csv.rows,
+      fn row -> List.zip(
+        [new_headers |> convert_headers_to_atoms(),
+        Keyword.values(row)]
+      )
+    end
+    ))
   end
 
 end

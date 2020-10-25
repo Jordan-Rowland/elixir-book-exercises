@@ -148,15 +148,29 @@ defmodule CsvWriterTest do
 
     csv1 = csv |> CsvWriter.add_column("address")
     [first_row | _] = csv1.rows
-
     assert csv1.headers == ["id", "name", "age", "address"]
     assert first_row == [id: 1, name: "jackson", age: 28, address: ""]
 
     csv2 = csv |> CsvWriter.add_column("address", "123 pike st")
     [first_row | _] = csv2.rows
-
+    assert csv2.headers == ["id", "name", "age", "address"]
     assert first_row == [id: 1, name: "jackson", age: 28, address: "123 pike st"]
+  end
 
+  test "modify headers" do
+    csv = %CsvWriter{
+      headers: ["id", "name", "age"],
+      rows: [
+        [id: 1, name: "jackson", age: 28],
+      ]
+    }
+
+    new_headers = ["new1", "new2", "new3"]
+    csv = csv |> CsvWriter.modify_headers(new_headers)
+    [first_row | _] = csv.rows
+
+    assert csv.headers == new_headers
+    assert first_row == [new1: 1, new2: "jackson", new3: 28]
   end
 
   #### ! For testing
