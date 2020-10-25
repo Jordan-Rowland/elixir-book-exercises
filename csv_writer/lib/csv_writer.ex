@@ -51,7 +51,7 @@ defmodule CsvWriter do
     file = filename |> File.open!([:write, :exclusive])
     rows
     |> rows_to_strings()
-    |> Enum.each(fn row -> write_row(file, row) end)
+    |> Enum.each(&(write_row(file, &1)))
     file |> File.close
   end
 
@@ -59,7 +59,7 @@ defmodule CsvWriter do
     file = filename |> File.open!([:write, :exclusive])
     [csv.headers | csv.rows]
     |> rows_to_strings()
-    |> Enum.each(fn row -> write_row(file, row) end)
+    |> Enum.each(&(write_row(file, &1)))
     file |> File.close
   end
 
@@ -98,10 +98,8 @@ defmodule CsvWriter do
     csv
     |> Map.put(:rows, Enum.map(
       csv.rows,
-      fn row ->
-        row ++ ["#{col_name}": default_value] end
-      )
-    )
+      &(&1 ++ ["#{col_name}": default_value])
+      ))
     |> Map.put(:headers, csv.headers ++ [col_name])
     |> Map.put(:col_len, csv.headers |> length)
   end
@@ -110,10 +108,8 @@ defmodule CsvWriter do
     csv
     |> Map.put(:rows, Enum.map(
       csv.rows,
-      fn row ->
-        row ++ ["#{col_name}": ""] end
-      )
-    )
+      &(&1 ++ ["#{col_name}": ""])
+      ))
     |> Map.put(:headers, csv.headers ++ [col_name])
     |> Map.put(:col_len, csv.headers |> length)
   end
@@ -121,7 +117,7 @@ defmodule CsvWriter do
   def filter_rows(csv, field, value) do
     filtered_rows =
       csv.rows
-      |> Enum.filter(fn row -> row[field] == value end)
+      |> Enum.filter(&(&1[field] == value))
     [csv.headers | filtered_rows]
   end
 
@@ -129,13 +125,13 @@ defmodule CsvWriter do
   def update_row(csv, old_row, new_row) do
     replace_index =
       csv.rows
-      |> Enum.find_index(fn row ->
-        row == old_row
-      end)
+      |> Enum.find_index(&(&1 == old_row))
     updated_rows = csv.rows |> List.replace_at(replace_index, new_row)
     Map.put(csv, :rows, updated_rows)
   end
 
+  # ? Possibly have an implementation to pass in a number
+  # ? which represents the amount of rows to replace
   # def find_replace_all(csv, column, find, replace) do
     # TODO: find-and-replace ability
     # 123
@@ -176,11 +172,7 @@ defmodule CsvWriter do
 
   defp convert_headers_to_atoms(list_of_headers) do
     list_of_headers
-    |> Enum.map(
-      fn header ->
-        header |> String.to_atom()
-      end
-      )
+    |> Enum.map(&(&1 |> String.to_atom()))
   end
 
   defp update_rows_new_headers(csv, new_headers) do
@@ -188,17 +180,17 @@ defmodule CsvWriter do
     |> Map.put(
       :rows,
       Enum.map(
-      csv.rows,
-      fn row -> List.zip(
-        [new_headers |> convert_headers_to_atoms(),
-        Keyword.values(row)]
+        csv.rows,
+        &(List.zip(
+          [new_headers |> convert_headers_to_atoms(),
+          Keyword.values(&1)]
+        ))
       )
-    end
-    ))
+    )
   end
 
   defp rows_to_strings(rows) when is_list(rows) do
-    rows |> Enum.map(fn row -> row |> format_row end)
+    rows |> Enum.map(&(&1 |> format_row))
   end
 
 end
