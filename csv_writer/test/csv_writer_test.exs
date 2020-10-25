@@ -3,17 +3,14 @@ defmodule CsvWriterTest do
   doctest CsvWriter
 
   test "opens existing file" do
-    # ! TODO: Fix this to account for empty file??
     dt_now = DateTime.now!("Etc/UTC")
     filename = "test_1_create_#{dt_now}.csv"
 
     filename
-    |> File.open([:write])
-    |> File.close()
+    |> CsvWriter.new(["header"])
+    |> CsvWriter.add_row(["value"])
 
     csv = filename |> CsvWriter.open_file()
-    # ! This gets deleted
-    # csv = filename |> CsvWriter.new()
 
     assert csv.filename == filename
     filename |> File.rm!()
@@ -55,11 +52,9 @@ defmodule CsvWriterTest do
     filename |> File.rm!()
   end
 
-  # ! This is not deleting the file D:
   test "add row from keyword list" do
     dt_now = DateTime.now!("Etc/UTC")
     filename = "test_4_create_#{dt_now}.csv"
-    # Need to fix this.
 
     csv =
       filename
@@ -126,13 +121,47 @@ defmodule CsvWriterTest do
     filename |> File.rm!()
   end
 
-  # ? don't need this test, just testing
   test "filter rows" do
-    dt_now = DateTime.now!("Etc/UTC")
-    filename = "test_8_create_#{dt_now}.csv"
-
     csv = %CsvWriter{
-      filename: filename,
+      headers: ["id", "name", "age"],
+      rows: [
+        [id: 2, name: "rick", age: 30],
+        [id: 3, name: "dave", age: 33],
+        [id: 6, name: "dave", age: 56],
+      ]
+    }
+
+    [_headers | filtered_rows] =
+      csv
+      |> CsvWriter.filter_rows(:name, "dave")
+
+    assert filtered_rows |> length() == 2
+  end
+
+  test "add column" do
+    csv = %CsvWriter{
+      headers: ["id", "name", "age"],
+      rows: [
+        [id: 1, name: "jackson", age: 28],
+      ]
+    }
+
+    csv1 = csv |> CsvWriter.add_column("address")
+    [first_row | _] = csv1.rows
+
+    assert csv1.headers == ["id", "name", "age", "address"]
+    assert first_row == [id: 1, name: "jackson", age: 28, address: ""]
+
+    csv2 = csv |> CsvWriter.add_column("address", "123 pike st")
+    [first_row | _] = csv2.rows
+
+    assert first_row == [id: 1, name: "jackson", age: 28, address: "123 pike st"]
+
+  end
+
+  #### ! For testing
+  test "testing" do
+    csv = %CsvWriter{
       headers: ["id", "name", "age"],
       rows: [
         [id: 1, name: "jackson", age: 28],
@@ -145,13 +174,10 @@ defmodule CsvWriterTest do
       ]
     }
 
-
-    filtered_rows =
+    [_headers | filtered_rows] =
       csv
       |> CsvWriter.filter_rows(:name, "dave")
 
-    filtered_rows |> CsvWriter.write_file(filename)
-
-    File.rm!(filename)
+    assert filtered_rows |> length() == 2
   end
 end

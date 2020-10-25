@@ -24,7 +24,6 @@ defmodule CsvWriter do
   end
 
   def open_file(filename) do
-    # TODO: Account for empty file
     stream = File.stream!(filename)
     [headers | rows] = for i <- stream, do: i |> String.trim() |> String.split(",")
 
@@ -70,11 +69,13 @@ defmodule CsvWriter do
   end
 
   def modify_headers(csv, list_of_headers) when is_list(list_of_headers) do
+    # TODO: test this -- ?? may not need to, being tested in "add column" test
     csv
     |> Map.put(:headers, list_of_headers)
     |> Map.put(:col_len, list_of_headers |> length)
   end
 
+  # TODO: handle error with something better than a print to IO
   def add_row(csv, row) when is_list(row) do
     with :ok <- validate_row(csv, row),
         _row <- format_row(row) do
@@ -84,6 +85,7 @@ defmodule CsvWriter do
     else
       {:error, msg} ->
         IO.inspect(msg, label: "Error occurred")
+        IO.inspect(row)
         csv
     end
   end
@@ -93,10 +95,24 @@ defmodule CsvWriter do
     csv
   end
 
-  def add_column(csv, col_name, default_value = "") do
-    csv.rows
-    |> Enum.map(fn row -> row ++ [default_value] end)
-    csv |> modify_headers(csv.headers ++ [col_name])
+  def add_column(csv, col_name, default_value) do
+    csv
+    |> Map.put(:rows, Enum.map(
+        csv.rows,
+        fn row ->
+          row ++ ["#{col_name}": default_value] end
+        ))
+    |> modify_headers(csv.headers ++ [col_name])
+  end
+
+  def add_column(csv, col_name) do
+    csv
+    |> Map.put(:rows, Enum.map(
+        csv.rows,
+        fn row ->
+          row ++ ["#{col_name}": ""] end
+        ))
+    |> modify_headers(csv.headers ++ [col_name])
   end
 
   # def replace_values(csv, ) do
@@ -114,16 +130,16 @@ defmodule CsvWriter do
     rows |> Enum.map(fn row -> row |> format_row end)
   end
 
+  # # TODO:
+  # # TODO: filter csv.rows to find value in column
+  # # TODO: filtered_rows =
   # def update_row(
-  #       csv,
-  #       field,
-  #       value
-  #       # update_field,
-  #       # update_value
-  #     ) do
-  #   # TODO:
-  #   # filter csv.rows to find value in column
-  #   # filtered_rows =
+  #         csv,
+  #         field,
+  #         value
+  #         # update_field,
+  #         # update_value
+  #       ) do
   #   csv
   #   |> filter_rows(field,value)
 
@@ -156,7 +172,6 @@ defmodule CsvWriter do
       else
         false -> row
       end
-
     (row |> Enum.join(",")) <> "\n"
   end
 
@@ -164,7 +179,7 @@ defmodule CsvWriter do
     with :ok <- file |> IO.write(row) do
       {:ok, row}
     else
-      {:error, reason} -> IO.puts(reason)
+      {:error, reason} -> IO.inspect(reason)
     end
   end
 
