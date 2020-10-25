@@ -8,7 +8,7 @@ defmodule CsvWriter do
   )
 
   def new(filename) do
-    File.open!(filename, [:exclusive]) |> File.close
+    # File.open!(filename, [:exclusive]) |> File.close
     %CsvWriter{filename: filename}
   end
 
