@@ -7,13 +7,11 @@ defmodule CsvWriter do
     row_len: 0
   )
 
-  # ? rename to new??
   def new(filename) do
     File.open!(filename, [:exclusive]) |> File.close
     %CsvWriter{filename: filename}
   end
 
-  # ? rename to new??
   def new(filename, list_of_headers) when is_list(list_of_headers) do
     File.open!(filename, [:write, :exclusive])
     |> IO.write(list_of_headers |> format_row())
@@ -72,12 +70,11 @@ defmodule CsvWriter do
     file |> File.close
   end
 
-  # def modify_headers(csv, list_of_headers) when is_list(list_of_headers) do
-  #   # TODO
-  #   csv
-  #   |> Map.put(:headers, list_of_headers)
-  #   |> Map.put(:col_len, list_of_headers |> length)
-  # end
+  def modify_headers(csv, list_of_headers) when is_list(list_of_headers) do
+    csv
+    |> Map.put(:headers, list_of_headers)
+    |> Map.put(:col_len, list_of_headers |> length)
+  end
 
   def add_row(csv, row) when is_list(row) do
     with :ok <- validate_row(csv, row),
@@ -97,11 +94,11 @@ defmodule CsvWriter do
     csv
   end
 
-  # def add_column(csv, col_name, default_value = "") do
-  #   # TODO: add column and optional defaul value
-  #   # for all rows
-  #   123
-  # end
+  def add_column(csv, col_name, default_value = "") do
+    csv.rows
+    |> Enum.map(fn row -> row ++ [default_value] end)
+    csv |> modify_headers(csv.headers ++ [col_name])
+  end
 
   # def replace_values(csv, ) do
   # end
