@@ -127,7 +127,7 @@ defmodule CsvWriterTest do
       rows: [
         [id: 2, name: "rick", age: 30],
         [id: 3, name: "dave", age: 33],
-        [id: 6, name: "dave", age: 56],
+        [id: 6, name: "dave", age: 56]
       ]
     }
 
@@ -142,7 +142,7 @@ defmodule CsvWriterTest do
     csv = %CsvWriter{
       headers: ["id", "name", "age"],
       rows: [
-        [id: 1, name: "jackson", age: 28],
+        [id: 1, name: "jackson", age: 28]
       ]
     }
 
@@ -159,17 +159,16 @@ defmodule CsvWriterTest do
 
   test "modify headers" do
     headers = ["id", "name", "age"]
+
     csv = %CsvWriter{
       headers: headers,
       col_len: headers |> length,
       rows: [
-        [id: 1, name: "jackson", age: 28],
+        [id: 1, name: "jackson", age: 28]
       ]
     }
 
     new_headers = ["new1", "new2", "new3"]
-    csv.col_len |> IO.puts
-    new_headers |> length |> IO.puts
 
     csv = csv |> CsvWriter.modify_headers(new_headers)
     [first_row | _] = csv.rows
@@ -188,7 +187,7 @@ defmodule CsvWriterTest do
         [id: 4, name: "mike", age: 55],
         [id: 5, name: "jevin", age: 66],
         [id: 6, name: "dave", age: 56],
-        [id: 7, name: "ron", age: 65],
+        [id: 7, name: "ron", age: 65]
       ]
     }
 
@@ -198,6 +197,33 @@ defmodule CsvWriterTest do
     csv = csv |> CsvWriter.update_row(old_row, new_row)
 
     assert new_row in csv.rows
+  end
+
+  test "find and replace" do
+    csv = %CsvWriter{
+      headers: ["id", "name", "age"],
+      rows: [
+        [id: 1, name: "jackson", age: 22],
+        [id: 2, name: "rick", age: 22],
+        [id: 3, name: "dave", age: 22],
+        [id: 4, name: "mike", age: 55],
+        [id: 5, name: "jevin", age: 66],
+        [id: 6, name: "dave", age: 56],
+        [id: 7, name: "ron", age: 65]
+      ]
+    }
+
+    csv |> CsvWriter.find_replace_all(:age, 22, 55)
+
+    csv = csv |> CsvWriter.find_replace_all(:age, 22, 55)
+
+    [updated_row_1 | [updated_row_2 | [updated_row_3 | _tail]]] = csv.rows
+    updated_row_1 |> IO.inspect(label: "==>")
+    assert updated_row_1 == [id: 1, name: "jackson", age: 55]
+    assert updated_row_2 == [id: 2, name: "rick", age: 55]
+    assert updated_row_3 == [id: 3, name: "dave", age: 55]
+
+    csv |> IO.inspect(label: "CSV")
   end
 
   #### ! For testing
@@ -211,7 +237,7 @@ defmodule CsvWriterTest do
         [id: 4, name: "mike", age: 55],
         [id: 5, name: "jevin", age: 66],
         [id: 6, name: "dave", age: 56],
-        [id: 7, name: "ron", age: 65],
+        [id: 7, name: "ron", age: 65]
       ]
     }
 
