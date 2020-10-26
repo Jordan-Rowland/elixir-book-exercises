@@ -200,30 +200,34 @@ defmodule CsvWriterTest do
   end
 
   test "find and replace" do
+    expected_rows = [
+      [id: 1, name: "jackson", age: 55],
+      [id: 2, name: "rick", age: 55],
+      [id: 3, name: "dave", age: 55]
+    ]
+
     csv = %CsvWriter{
       headers: ["id", "name", "age"],
       rows: [
         [id: 1, name: "jackson", age: 22],
         [id: 2, name: "rick", age: 22],
         [id: 3, name: "dave", age: 22],
-        [id: 4, name: "mike", age: 55],
-        [id: 5, name: "jevin", age: 66],
+        [id: 4, name: "mike", age: 88],
+        [id: 5, name: "jevin", age: 51],
         [id: 6, name: "dave", age: 56],
         [id: 7, name: "ron", age: 65]
       ]
     }
 
-    csv |> CsvWriter.find_replace_all(:age, 22, 55)
-
     csv = csv |> CsvWriter.find_replace_all(:age, 22, 55)
 
-    [updated_row_1 | [updated_row_2 | [updated_row_3 | _tail]]] = csv.rows
-    updated_row_1 |> IO.inspect(label: "==>")
-    assert updated_row_1 == [id: 1, name: "jackson", age: 55]
-    assert updated_row_2 == [id: 2, name: "rick", age: 55]
-    assert updated_row_3 == [id: 3, name: "dave", age: 55]
+    [_headers | [updated_row_1 | [updated_row_2 | [updated_row_3 | _tail]]]] =
+      csv |> CsvWriter.filter_rows(:age, 55)
 
     csv |> IO.inspect(label: "CSV")
+    assert updated_row_1 in expected_rows
+    assert updated_row_2 in expected_rows
+    assert updated_row_3 in expected_rows
   end
 
   #### ! For testing

@@ -152,13 +152,22 @@ defmodule CsvWriter do
       csv
       |> filter_rows(field, value)
 
-    # ! This does not work
+    # ? Might need to implement another reduce
+    # ? or some other function to remove existing
+    # ? rows...
     updated_rows =
       filtered_rows
-      |> Enum.reduce([], fn row, acc ->
+      |> Enum.reduce(csv.rows, fn row, acc ->
+        acc |> List.delete(row)
+      end)
+
+    # ! This does not work yet. It currently
+    # ! replaces all csv rows
+    updated_rows =
+      filtered_rows
+      |> Enum.reduce(updated_rows, fn row, acc ->
         [row |> Keyword.replace(field, replace_value) | acc]
       end)
-      |> Enum.reverse()
 
     csv |> Map.put(:rows, updated_rows)
   end
