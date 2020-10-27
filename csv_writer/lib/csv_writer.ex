@@ -148,25 +148,18 @@ defmodule CsvWriter do
   # ? Possibly have an implementation to pass in a number
   # ? which represents the amount of rows to replace
   def find_replace_all(csv, field, value, replace_value) do
-    [_header | filtered_rows] =
+    updated_rows =
       csv
       |> filter_rows(field, value)
-
-    # ? Might need to implement another reduce
-    # ? or some other function to remove existing
-    # ? rows...
-    updated_rows =
-      filtered_rows
+      # remove headers
+      |> Enum.slice(1..-1)
       |> Enum.reduce(csv.rows, fn row, acc ->
-        acc |> List.delete(row)
-      end)
-
-    # ! This does not work yet. It currently
-    # ! replaces all csv rows
-    updated_rows =
-      filtered_rows
-      |> Enum.reduce(updated_rows, fn row, acc ->
-        [row |> Keyword.replace(field, replace_value) | acc]
+        [
+          row
+          |> Keyword.replace(field, replace_value)
+          | acc
+            |> List.delete(row)
+        ]
       end)
 
     csv |> Map.put(:rows, updated_rows)

@@ -219,12 +219,19 @@ defmodule CsvWriterTest do
       ]
     }
 
+    [_headers | [original_row_1 | [original_row_2 | [original_row_3 | _tail]]]] =
+      csv |> CsvWriter.filter_rows(:age, 22)
+
     csv = csv |> CsvWriter.find_replace_all(:age, 22, 55)
 
     [_headers | [updated_row_1 | [updated_row_2 | [updated_row_3 | _tail]]]] =
       csv |> CsvWriter.filter_rows(:age, 55)
 
-    csv |> IO.inspect(label: "CSV")
+    csv |> IO.inspect()
+
+    assert original_row_1 not in csv.rows
+    assert original_row_2 not in csv.rows
+    assert original_row_3 not in csv.rows
     assert updated_row_1 in expected_rows
     assert updated_row_2 in expected_rows
     assert updated_row_3 in expected_rows
