@@ -6,11 +6,9 @@ defmodule CsvWriterTest do
     dt_now = DateTime.now!("Etc/UTC")
     filename = "test_1_create_#{dt_now}.csv"
 
-    filename
-    |> CsvWriter.new(["header"])
-    |> CsvWriter.add_row(["value"])
-
-    csv = filename |> CsvWriter.open_file()
+    csv =
+      filename
+      |> CsvWriter.new(["header1", "header2"])
 
     assert csv.filename == filename
     filename |> File.rm!()
@@ -37,7 +35,7 @@ defmodule CsvWriterTest do
     filename |> File.rm!()
   end
 
-  test "add row to file" do
+  test "add row from non keyword list" do
     dt_now = DateTime.now!("Etc/UTC")
     filename = "test_3_create_#{dt_now}.csv"
 
@@ -46,7 +44,6 @@ defmodule CsvWriterTest do
       |> CsvWriter.new(["id", "name", "address"])
       |> CsvWriter.add_row([1, "djavid", "123 fake st"])
       |> CsvWriter.add_row([2, "jenny", "120 evergreen terrace"])
-      |> CsvWriter.add_row([2, "jenny", "120 evergreen terrace", "extra col"])
 
     assert csv.row_len == 2
     filename |> File.rm!()
@@ -62,13 +59,8 @@ defmodule CsvWriterTest do
       |> CsvWriter.add_row(id: 1, name: "djavid", address: "123 fake st")
       |> CsvWriter.add_row(id: 2, name: "jenny", address: "120 evergreen terrace")
 
-    dt_now = DateTime.now!("Etc/UTC")
-    filename2 = "test_4_create_#{dt_now}.csv"
-    csv |> CsvWriter.write_file(filename2)
-
     assert csv.row_len == 2
     filename |> File.rm!()
-    filename2 |> File.rm!()
   end
 
   test "do not allow row longer than column length" do
@@ -196,6 +188,7 @@ defmodule CsvWriterTest do
 
     csv = csv |> CsvWriter.update_row(old_row, new_row)
 
+    assert old_row not in csv.rows
     assert new_row in csv.rows
   end
 
@@ -207,6 +200,8 @@ defmodule CsvWriterTest do
     ]
 
     csv = %CsvWriter{
+      col_len: 3,
+      row_len: 7,
       headers: ["id", "name", "age"],
       rows: [
         [id: 1, name: "jackson", age: 22],
@@ -226,8 +221,6 @@ defmodule CsvWriterTest do
 
     [_headers | [updated_row_1 | [updated_row_2 | [updated_row_3 | _tail]]]] =
       csv |> CsvWriter.filter_rows(:age, 55)
-
-    csv |> IO.inspect()
 
     assert original_row_1 not in csv.rows
     assert original_row_2 not in csv.rows

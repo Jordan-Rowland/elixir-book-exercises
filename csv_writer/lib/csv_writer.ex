@@ -26,16 +26,9 @@ defmodule CsvWriter do
   def open_file(filename) do
     stream = File.stream!(filename)
     [headers | rows] = for i <- stream, do: i |> String.trim() |> String.split(",")
-    header_atoms = headers |> convert_headers_to_atoms()
 
     # Turns rows into keylist with headers as keys
-    rows =
-      for row <- rows,
-          do:
-            List.zip([
-              header_atoms,
-              row
-            ])
+    rows = zip_to_keyword_list(headers, rows)
 
     %CsvWriter{
       filename: filename,
@@ -84,14 +77,23 @@ defmodule CsvWriter do
   def add_row(csv, row) do
     with true <- row |> is_list(),
          :ok <- validate_row_len(csv, row) do
-      csv
-      |> Map.put(:row_len, csv.row_len + 1)
-      |> Map.put(:rows, csv.rows ++ [row])
+
+      case Keyword.keyword?(row) do
+        true ->
+          csv
+          |> Map.put(:row_len, csv.row_len + 1)
+          |> Map.put(:rows, csv.rows ++ [row])
+        false ->
+          csv
+          |> Map.put(:row_len, csv.row_len + 1)
+          |> Map.put(
+              :rows,
+              csv.rows ++ zip_to_keyword_list(csv.headers, [row]))
+      end
+
     else
       false ->
-        "Row must be a list"
-        |> IO.inspect(label: "Error occurred")
-
+        "Row must be a list" |> IO.inspect(label: "Error occurred")
         csv
 
       {:error, msg} ->
@@ -217,5 +219,14 @@ defmodule CsvWriter do
 
   defp rows_to_strings(rows) when is_list(rows) do
     rows |> Enum.map(&(&1 |> format_row))
+  end
+
+  defp zip_to_keyword_list(headers, rows) do
+    for row <- rows,
+        do:
+          List.zip([
+            headers |> convert_headers_to_atoms(),
+            row
+          ])
   end
 end
