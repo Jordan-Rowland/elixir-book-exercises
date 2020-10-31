@@ -14,7 +14,9 @@ defmodule Hangman.Game do
   end
 
   def new_game do
-    Dictionary.random_word |> new_game
+    Dictionary.start
+    |> Dictionary.random_word
+    |> new_game
   end
 
   # Matches clauses for game_state == :won or :lost
@@ -31,6 +33,7 @@ defmodule Hangman.Game do
       game_state: game.game_state,
       turns_left: game.turns_left,
       letters: game.letters |> reveal_guessed(game.used),
+      guessed: game.used
     }
   end
 

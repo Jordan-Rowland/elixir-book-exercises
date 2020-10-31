@@ -147,8 +147,6 @@ defmodule CsvWriter do
     Map.put(csv, :rows, updated_rows)
   end
 
-  # ? Possibly have an implementation to pass in a number
-  # ? which represents the amount of rows to replace
   def find_replace_all(csv, field, value, replace_value) do
     updated_rows =
       csv
@@ -212,7 +210,9 @@ defmodule CsvWriter do
       :rows,
       Enum.map(
         csv.rows,
-        &List.zip([new_headers |> convert_headers_to_atoms(), Keyword.values(&1)])
+        &(List.zip([
+          new_headers |> convert_headers_to_atoms(),
+          Keyword.values(&1)]))
       )
     )
   end
