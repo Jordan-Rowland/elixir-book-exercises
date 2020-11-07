@@ -1,6 +1,4 @@
 defmodule Fibber do
-  # Then create another project for the code that does the Fibonacci calculation. Add the
-  # cache as a dependency, and verify that is correctly caches between calls to fib.
 
   def fib(0), do: 0
   def fib(1), do: 1

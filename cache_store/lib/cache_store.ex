@@ -1,10 +1,8 @@
 defmodule CacheStore do
-  # Rewrite the cache as an application, so that it persists across calls to the Fibonacci
-  # calculator. This will involve creating a project for it.
 
   @mod __MODULE__
 
-  def start_link(initial_state = %{}) do
+  def start_link(initial_state) do
     Agent.start_link(fn -> initial_state end, name: @mod)
   end
 
