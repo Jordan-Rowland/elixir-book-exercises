@@ -13,6 +13,11 @@ defmodule Dictionary.WordList do
   end
 
   def random_word do
+    # Test supervisor, fail 1/3 times
+    # if :rand.uniform() < 0.33 do
+    #   Agent.get(@mod, fn _ -> exit(:boom) end)
+    # end
+
     Agent.get(@mod, &Enum.random/1)
   end
 

@@ -1,5 +1,4 @@
 defmodule Hangman.Game do
-
   defstruct(
     turns_left: 7,
     game_state: :initializing,
@@ -14,18 +13,24 @@ defmodule Hangman.Game do
   end
 
   def new_game do
-    Dictionary.start
-    |> Dictionary.random_word
+    Dictionary.random_word()
     |> new_game
   end
 
   # Matches clauses for game_state == :won or :lost
-  def make_move(game = %{ game_state: state }, _guess) when state in [:won, :lost] do
+  def make_move(game = %{game_state: state}, _guess) when state in [:won, :lost] do
     game
+    |> return_with_tally()
   end
 
   def make_move(game, guess) do
-    accept_move(game, guess, MapSet.member?(game.used, guess), validate_guess(guess))
+    accept_move(
+      game,
+      guess,
+      MapSet.member?(game.used, guess),
+      validate_guess(guess)
+    )
+    |> return_with_tally()
   end
 
   def tally(game) do
@@ -40,7 +45,7 @@ defmodule Hangman.Game do
   #######################################################################
 
   defp accept_move(game, _guess, _already_guessed, _guess_allowed = false) do
-    "Guess must be a single lowercase character" |> IO.puts
+    "Guess must be a single lowercase character" |> IO.puts()
     Map.put(game, :game_state, :invalid_guess)
   end
 
@@ -55,26 +60,28 @@ defmodule Hangman.Game do
 
   defp validate_guess(guess) do
     # Create an alphabet list, ["a", "b", "c", (...)]
-    lets = for n <- ?a..?z, do: << n :: utf8 >>
+    lets = for n <- ?a..?z, do: <<n::utf8>>
     lets |> Enum.member?(guess)
   end
 
   defp score_guess(game, _good_guess = true) do
-    new_state = MapSet.new(game.letters)
-    |> MapSet.subset?(game.used)
-    |> maybe_won()
+    new_state =
+      MapSet.new(game.letters)
+      |> MapSet.subset?(game.used)
+      |> maybe_won()
+
     Map.put(game, :game_state, new_state)
   end
 
-  defp score_guess(game = %{ turns_left: 1 }, _not_good_guess) do
+  defp score_guess(game = %{turns_left: 1}, _not_good_guess) do
     Map.put(game, :game_state, :lost)
   end
 
-  defp score_guess(game = %{ turns_left: turns_left }, _not_good_guess) do
+  defp score_guess(game = %{turns_left: turns_left}, _not_good_guess) do
     %{
-      game |
-      game_state: :bad_guess,
-      turns_left: turns_left - 1,
+      game
+      | game_state: :bad_guess,
+        turns_left: turns_left - 1
     }
   end
 
@@ -88,4 +95,6 @@ defmodule Hangman.Game do
 
   defp maybe_won(true), do: :won
   defp maybe_won(_), do: :good_guess
+
+  defp return_with_tally(game), do: {game, tally(game)}
 end
