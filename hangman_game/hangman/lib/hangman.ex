@@ -113,7 +113,7 @@ defmodule Hangman do
   defp maybe_won(true), do: :won
   defp maybe_won(_), do: :good_guess
 
-  defp return_with_tally(game), do: {game, tally(game)}
+  defp return_with_tally(game), do: {game, do_tally(game)}
 
   # ! ###################
   # ! Application
