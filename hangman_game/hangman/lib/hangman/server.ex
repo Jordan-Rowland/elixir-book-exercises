@@ -3,6 +3,7 @@ defmodule Hangman.Server do
   use GenServer
 
   def start_link do
+    "Starting server..." |> IO.puts()
     GenServer.start_link(__MODULE__, nil)
   end
 
